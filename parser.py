@@ -1,29 +1,73 @@
-class Parser:
-    def __init__(self, file_stream:str):
-        self.text = _open_file_to_be_parsed(file_stream)
-        self.buffer = _get_buffer_version(self.text)
-        self.current_instructions=''
+import io
+import code
 
-    
-    def has_more_lignes(self.text):
-        return self.buffer_reader.peek() != b''
+class Parser:
+    def __init__(self, source_path):
+        self.f = open(source_path, 'r')
+        self.has_more = True        
+
+    def has_more_lignes(self):
+        return self.has_more
 
     def advance(self):
-        current_line:str = read_line()
-        its_comment = current_line.startwith("//")
-        its_space = current_line.contain(" ")
-        self.current_instructions = next(buffer)
+        assert self.has_more == True
+        self.f.readline()
+        if peek_line(self.f) == "":
+            self.has_more = False
 
-    @staticmethod
-    def _get_buffer_version(text:io.TextIOBase)->io.BufferedReader:
-        return io.BufferedReader(io.BytesIO(file.getvalue().encode("utf-8")))
+    def _current(self):
+        if peek_line(self.f).startswith("//"):
+            self.advance()
+            self._current()
+        if ("//") in peek_line(self.f):
+            line = peek_line(self.f).split("//", 1)[0].strip()
+            return line
+        first_line = peek_line(self.f)
+        return first_line
+    
+    def symbol(self):
+        assert self.instruction_type in ["A_INSTRUCTION" , "C_INSTRUCTION"]
+        if self.instruction_type == "A_INSTRUCTION":
+            res = self._current()
+            return res[1:]
+        else: 
+            return self._current()[1:-1]
+    
+    def dest(self):
+        assert self.instruction_type == "C_INSTRUCTION"
+        if '=' in self._current():
+            return self._current().split("=")[0]
+        else:
+            return None
 
-    @staticmethod
-    def _open_file_to_be_parsed(file_stream:str)-> :
-            with open(file_stream, "r",  encoding="utf-8") as f:
-                read_data = f.read()
-            return read_data
+    def jump(self):
+        assert self.instruction_type == "C_INSTRUCTION"
+        if ';' in self._current():
+            return self._current().split(";")[-1]
+        else:
+            return None
+    
+    def comp(self):
+        assert self.instruction_type == "C_INSTRUCTION"
+        sub = self._current()
+        if '=' in self._current():
+            sub = sub.split("=")[-1].strip()
+        if ';' in self._current():
+            sub = sub.split(";")[0]
+        return sub
 
-
-
-
+    @property
+    def instruction_type(self):
+        current = self._current()
+        if any([sign_c in current  for sign_c in ["=", ";"]]):
+            return "C_INSTRUCTION"
+        elif current.startswith("@"):
+            return "A_INSTRUCTION"
+        elif current.startswith("("):
+            return "L_INSTRUCTION"
+    
+def peek_line(file_obj: io.TextIOBase) -> str:
+    pos = file_obj.tell()          
+    line = file_obj.readline()     
+    file_obj.seek(pos)            
+    return line
