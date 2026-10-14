@@ -2,7 +2,6 @@ class code:
     def __init__(self):
         pass
 
-
     def dest(self, dest: str):
         """
         Returns the binary code of the dest mnemonic.
@@ -93,6 +92,6 @@ class code:
         else:
             raise ValueError(f"Invalid comp mnemonic: {comp}")
 
-   
-        
+
+
             
